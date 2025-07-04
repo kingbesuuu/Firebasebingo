@@ -33,6 +33,9 @@
       top: 20px; right: 10px; max-width: 180px; transform: scale(0.8);
       z-index: 1; justify-content: flex-end;
     }
+  .bingo-card .invalid {
+  background-color: #ffcccc !important;
+}
     .ball { width: 28px; height: 28px; border-radius: 50%; color: #fff;
       font-weight: bold; display: flex; align-items: center; justify-content: center;
       font-size: 10px; transition: transform 0.5s ease, opacity 0.5s ease; margin: 1px; }
@@ -96,13 +99,12 @@ if (
   telegramUsername = Telegram.WebApp.initDataUnsafe.user.username;
 }
 
-let currentPlayerId;
-let gameCard = [];
 let calledNumbers = new Set();
+let manuallyMarked = new Set(); // ✅ store manually marked numbers
+let lockedSeeds = []; // ✅ declare properly
 let allCallPool = [];
-let callHistory = [];
 let callInterval;
-let callsNeededToWin = 15 + Math.floor(Math.random() * 11);
+let callHistory = [];
 let currentSeed = null;
 
 socket.on('connect', () => {
@@ -372,53 +374,61 @@ socket.on('reset', () => {
 }
       
     function renderGameCard() {
-      gameCardContainer.innerHTML = '';
-      const table = document.createElement('table');
-      const header = document.createElement('tr');
-      ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
-        const th = document.createElement('td');
-        th.textContent = letter;
-        th.style.fontWeight = 'bold';
-        th.classList.add(letter.toLowerCase() + '-col');
-        header.appendChild(th);
-      });
-      table.appendChild(header);
-      for (let row = 0; row < 5; row++) {
-        const tr = document.createElement('tr');
-        for (let col = 0; col < 5; col++) {
-          const td = document.createElement('td');
-          const val = gameCard[col][row];
-          td.textContent = val;
-          if (val === 'FREE') {
-            td.classList.add('free', 'marked');
-          } else {
-            td.addEventListener('click', () => markCell(td, val));
-          }
-          tr.appendChild(td);
-        }
-        table.appendChild(tr);
-      }
-      gameCardContainer.appendChild(table);
-    }
+  gameCardContainer.innerHTML = '';
+  const table = document.createElement('table');
+  const header = document.createElement('tr');
+  ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
+    const th = document.createElement('td');
+    th.textContent = letter;
+    th.style.fontWeight = 'bold';
+    th.classList.add(letter.toLowerCase() + '-col');
+    header.appendChild(th);
+  });
+  table.appendChild(header);
 
-    function markCell(td, val) {
-  td.classList.toggle('marked');
-  td.classList.remove('invalid');
-  if (!calledNumbers.has(parseInt(val))) {
-  td.classList.add('invalid');
-} else {
-  td.classList.remove('invalid');
+  for (let row = 0; row < 5; row++) {
+    const tr = document.createElement('tr');
+    for (let col = 0; col < 5; col++) {
+      const td = document.createElement('td');
+      const val = gameCard[col][row];
+      td.textContent = val;
+
+      if (val === 'FREE') {
+        td.classList.add('free', 'marked');
+      } else {
+        td.addEventListener('click', () => markCell(td, val));
+        if (manuallyMarked.has(parseInt(val))) {
+          td.classList.add('marked');
+        }
+      }
+
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+
+  gameCardContainer.appendChild(table);
 }
 
-  console.log("You clicked:", val); // 🔍 log to console
+    
+function markCell(td, val) {
+  val = parseInt(val);
 
-  // 📌 Show clicked number on screen
+  if (calledNumbers.has(val)) {
+    td.classList.add('marked');
+    td.classList.remove('invalid');
+    manuallyMarked.add(val); // ✅ remember this number
+  } else {
+    td.classList.add('invalid');
+  }
+
   const clickedDisplay = document.getElementById('clicked-number-display');
   if (clickedDisplay) {
     clickedDisplay.textContent = `Clicked Number: ${val}`;
   }
-}
 
+  console.log("You clicked:", val);
+}
     function checkBingo() {
       const win = checkAutoBingo();
       if (win) {
