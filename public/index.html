@@ -165,6 +165,7 @@ socket.on('gameStarted', () => {
 
 // ✅ Winner shown
 socket.on('winner', (data) => {
+  clearInterval(callInterval); // ✅ Stop the client loop
   gameMessage.innerHTML = `🎉 <b>${data.username}</b> got Bingo!<br/><pre>${JSON.stringify(data.card, null, 2)}</pre>`;
 });
 

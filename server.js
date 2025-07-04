@@ -207,14 +207,19 @@ io.on('connection', (socket) => {
   });
 
   socket.on('bingo', (card) => {
-    if (!gameStarted || winnerInfo) return;
-    winnerInfo = {
-      username: players[socket.id]?.username || 'Unknown',
-      card
-    };
-    io.emit('winner', winnerInfo);
-    clearInterval(callInterval);
-  });
+  if (!gameStarted || winnerInfo) return;
+
+  winnerInfo = {
+    username: players[socket.id]?.username || 'Unknown',
+    card
+  };
+
+  io.emit('winner', winnerInfo);
+
+  // ✅ STOP calling numbers immediately
+  clearInterval(callInterval);
+  callInterval = null;
+});
 
   socket.on('playAgain', () => {
     resetGame();
