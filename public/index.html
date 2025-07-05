@@ -45,9 +45,11 @@
 }
   
   #winner-card-display {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
+  margin-top: 15px;
+  text-align: center;
+}
+#winner-card-display .bingo-card {
+  margin: 0 auto;
 }
 
 /* Called numbers in mini-table */
@@ -306,21 +308,54 @@ socket.on('gameStarted', () => {
 
 // ✅ Winner shown
 socket.on('winner', (data) => {
-  clearInterval(callInterval); // Stop calling numbers
-  gameMessage.innerHTML = `
-    🎉 <b>${data.username}</b> got Bingo!
-    <div id="winner-card-display"></div>
-  `;
+  clearInterval(callInterval); // Stop number calling
 
-  renderWinnerCard(data.card);
+  const container = document.createElement('div');
+  container.id = 'winner-card-display';
 
-  // Return to home page after 15 seconds
+  const title = document.createElement('div');
+  title.innerHTML = `🎉 <b>${data.username}</b> got Bingo!`;
+
+  const table = document.createElement('table');
+  table.className = 'bingo-card';
+
+  // BINGO header row (as balls)
+  const header = document.createElement('tr');
+  ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
+    const th = document.createElement('td');
+    th.innerHTML = `<div class="bingo-ball ${letter}">${letter}</div>`;
+    header.appendChild(th);
+  });
+  table.appendChild(header);
+
+  // Fill the card rows
+  for (let row = 0; row < 5; row++) {
+    const tr = document.createElement('tr');
+    for (let col = 0; col < 5; col++) {
+      const td = document.createElement('td');
+      const val = data.card[col][row];
+      td.textContent = val;
+      if (val === 'FREE' || !isNaN(val)) {
+        td.classList.add('marked');
+      }
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+
+  container.appendChild(title);
+  container.appendChild(table);
+
+  gameMessage.innerHTML = '';
+  gameMessage.appendChild(container);
+
+  // Return home after 15s
   setTimeout(() => {
     page2.classList.add('hidden');
     page1.classList.remove('hidden');
     bingoContainer.innerHTML = '';
     gameMessage.textContent = '';
-  }, 3000);
+  }, 15000);
 });
 // ✅ Blocked from joining
 socket.on('blocked', (reason) => {
