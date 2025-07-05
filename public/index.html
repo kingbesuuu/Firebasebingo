@@ -43,6 +43,12 @@
   color: yellow;
   cursor: default;
 }
+  
+  #winner-card-display {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
 
 /* Called numbers in mini-table */
 .mini-table .called {
@@ -300,17 +306,21 @@ socket.on('gameStarted', () => {
 
 // ✅ Winner shown
 socket.on('winner', (data) => {
-  clearInterval(callInterval);
+  clearInterval(callInterval); // Stop calling numbers
+  gameMessage.innerHTML = `
+    🎉 <b>${data.username}</b> got Bingo!
+    <div id="winner-card-display"></div>
+  `;
 
-  const gameMessage = document.getElementById('game-message');
-  if (gameMessage) {
-    gameMessage.innerHTML = `🎉 <b>${data.username}</b> got Bingo!<br/><pre>${JSON.stringify(data.card, null, 2)}</pre>`;
-  }
+  renderWinnerCard(data.card);
 
-  const tryAgainBox = document.getElementById('try-again-container');
-  if (tryAgainBox) {
-    tryAgainBox.classList.remove('hidden');
-  }
+  // Return to home page after 15 seconds
+  setTimeout(() => {
+    page2.classList.add('hidden');
+    page1.classList.remove('hidden');
+    bingoContainer.innerHTML = '';
+    gameMessage.textContent = '';
+  }, 3000);
 });
 // ✅ Blocked from joining
 socket.on('blocked', (reason) => {
@@ -533,6 +543,43 @@ function renderMiniTable() {
     }
   });
 }
+      function renderWinnerCard(card) {
+  const container = document.getElementById('winner-card-display');
+  if (!container) return;
+
+  const table = document.createElement('table');
+  table.className = 'bingo-card';
+
+  // Add BINGO header using balls
+  const header = document.createElement('tr');
+  ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
+    const th = document.createElement('td');
+    th.innerHTML = `<div class="bingo-ball ${letter}">${letter}</div>`;
+    header.appendChild(th);
+  });
+  table.appendChild(header);
+
+  // Fill card numbers
+  for (let row = 0; row < 5; row++) {
+    const tr = document.createElement('tr');
+    for (let col = 0; col < 5; col++) {
+      const td = document.createElement('td');
+      const val = card[col][row];
+      td.textContent = val;
+      if (val === 'FREE') {
+        td.classList.add('free', 'marked');
+      } else {
+        td.classList.add('marked');
+      }
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+
+  container.innerHTML = '';
+  container.appendChild(table);
+}
+      
 function renderGameCard() {
   gameCardContainer.innerHTML = '';
 
