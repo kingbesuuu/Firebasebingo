@@ -6,14 +6,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Multiplayer Bingo</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background-color: #ccffff; }
+    body { font-family: Arial, sans-serif; padding: 10px; background-color: #ccffff; 
+      background-image: url('https://coventryobserver.co.uk/wp-content/uploads/2024/08/bingo-7318132_1280-1-651x434.jpg');
+      
+    }
     .grid { display: grid; grid-template-columns: repeat(10, 24px); gap: 3px; margin-top: 10px; }
     .grid button { width: 24px; height: 24px; font-size: 10px; cursor: pointer; }
     .bingo-card table, .mini-table { border-collapse: collapse; margin-bottom: 10px; }
-    .bingo-card td, .mini-table td {
-      width: 28px; height: 28px; text-align: center; vertical-align: middle;
-      border: 1px solid #333; font-size: 10px; cursor: pointer;
-    }
+   /* Match grid look for mini-table and bingo-card */
+.bingo-card td,
+.mini-table td {
+  background-color: white;         /* like the 1–100 grid */
+  color: blue;
+  border: 1px solid #FFC0CB;
+  font-size: 12px;
+  font-style: bold;
+  text-align: center;
+  vertical-align: middle;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+/* Make them look like buttons */
+.bingo-card td:hover,
+.mini-table td:hover {
+  background-color: #e0e0e0;
+}
+
+/* FREE cell style */
+.bingo-card .free {
+  background-color: #ccc;
+  color: yellow;
+  cursor: default;
+}
+
+/* Called numbers in mini-table */
+.mini-table .called {
+  background-color: yellow;
+  color: yellow;
+}
+
+/* Marked numbers on bingo card */
+.bingo-card .marked {
+  background-color: lightgreen !important;
+  color: black;
+}
+  .bingo-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+  gap: 4px;
+}
+.bingo-ball {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: gray;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.bingo-ball.B { background-color: orange; }
+.bingo-ball.I { background-color: green; }
+.bingo-ball.N { background-color: blue; }
+.bingo-ball.G { background-color: red; }
+.bingo-ball.O { background-color: purple; }
     .mini-table th { height: 20px; width: 20px; text-align: center; font-size: 12px; }
     .bingo-card .free { background-color: #ddd; cursor: default; }
     .bingo-card .marked { background-color: lightgreen !important; position: relative; }
@@ -29,23 +91,72 @@
     .layout-flex { display: flex; gap: 20px; align-items: flex-start; }
     .mini-table .called { background-color: yellow; }
     .ball-container {
-      display: flex; flex-wrap: wrap; gap: 4px; position: absolute;
+      display: flex; flex-wrap: wrap; gap: 4px; position: absolute; padding-top: 20px;
       top: 20px; right: 10px; max-width: 180px; transform: scale(0.8);
       z-index: 1; justify-content: flex-end;
     }
   .bingo-card .invalid {
   background-color: #ffcccc !important;
 }
+.top-info-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: #fff7e6;
+  border-radius: 8px;
+  box-shadow: 10 2px 5px rgba(0,0,0,0.1);
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 100px;
+  flex-wrap: wrap;
+  height: 6px;
+}
+
+.top-info-row > div {
+  padding: 16px 10px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.1);
+  height: 6px;
+}
+  
+  .info-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: #e6f7ff;
+  border-radius: 10px;
+  margin-bottom: 1px;
+  font-size: 8px;
+  font-weight: bold;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow-x: auto;
+    height: 6px;
+}
+
+.info-bar div {
+  padding: 15px 7px;
+  border-radius: 5px;
+  background-color: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  height: 6px;
+}
+
     .ball { width: 28px; height: 28px; border-radius: 50%; color: #fff;
       font-weight: bold; display: flex; align-items: center; justify-content: center;
       font-size: 10px; transition: transform 0.5s ease, opacity 0.5s ease; margin: 1px; }
     .ball.animate { transform: scale(1.3); opacity: 0.7; }
     .ball.B { background: orange; } .ball.I { background: green; }
     .ball.N { background: blue; } .ball.G { background: red; } .ball.O { background: purple; }
-    #called-count { font-size: 14px; margin-bottom: 5px; font-weight: bold; }
+    
     .bingo-card-container { display: flex; flex-direction: column; align-items: center; margin-top: 30px; }
     #game-message { margin-top: 10px; font-weight: bold; }
-    #page2  { position: relative; }
+    #page2  { position: relative; padding-top: 1px;}
   </style>
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 </head>
@@ -54,27 +165,45 @@
     <div class="grid" id="number-grid"></div>
     <div class="bingo-card" id="bingo-container"></div>
   </div>
+<div id="page2" class="hidden">
+  <div id="countdown-bar" style="height: 6px; background: green; width: 100%; margin-top: 4px;"></div>
+ 
+  
+<div id="info-bar" class="info-bar">
+  <div id="called-count">Called: 0</div>
+  <div id="balance-display">💰 Balance: 0</div>
+  <div id="player-count">👥 Players: 0</div>
+  <div id="gain-point">🏆 win: 0</div>
+  
+</div>
+  
+      <div class="ball-container" id="ball-scroll"></div>
 
-  <div id="page2" class="hidden">
-    <div id="called-count">Numbers Called: 0</div>
-    <div class="ball-container" id="ball-scroll"></div>
-    <div class="layout-flex">
-      <div class="mini-table-container"><table class="mini-table" id="mini-table"></table></div>
-      <div class="bingo-card-container">
-        <div class="bingo-card" id="game-card"></div>
-        <div class="buttons">
-          <button onclick="checkBingo()">Bingo!</button>
-          <button onclick="endGame()">End Game</button>
-          
-        </div>
-      </div>
+  <!-- ✅ Mini Table and Bingo Card Side-by-side -->
+  <div class="layout-flex">
+    <div class="mini-table-container">
+      <table class="mini-table" id="mini-table"></table>
     </div>
-    <div id="game-message"></div>
-    <div id="countdown-bar" style="height: 6px; background: green; width: 100%; margin-top: 4px;"></div>
-    <div id="card-number-display" style="margin-top: 15px; text-align: center; font-weight: bold;"></div>
+
+    <div class="bingo-card-container">
+  <div class="bingo-card-container">
+  <div class="bingo-card" id="game-card"></div>
+  
+  <!-- ✅ Move card number inside this container -->
+  <div id="card-number-display" style="margin-top: 8px; font-size: 12px; font-weight: bold; text-align: center; color: red;"></div>
+  
+  <div class="buttons">
+    <button onclick="checkBingo()">Bingo!</button>
+    <button onclick="endGame()">End Game</button>
   </div>
-<div id="username-display" style="text-align: center; margin-top: 10px; font-weight: bold;"></div>
-<div id="balance-display" style="text-align: center; font-weight: bold;">💰 Balance: 0</div>
+</div>
+    </div>
+  </div>
+
+  <!-- ✅ Game Status -->
+  <div id="game-message"></div>
+
+</div>
   <script>
   
 const socket = io();  // connect to the socket server
@@ -124,20 +253,14 @@ socket.on('countdown', (seconds) => {
   }
 });
   
-socket.on('init', (data) => {
+    socket.on('init', (data) => {
   calledNumbers = new Set(data.calledNumbers || []);
   playerBalance = data.balance || 0;
   lockedSeeds = data.lockedSeeds || [];
   updateBalanceDisplay();
   renderMiniTable();
   renderGameCard();
-  highlightLockedSeeds(); // ← show red buttons for taken cards
-});
-
-// 👇 Add this directly below
-socket.on('lockedSeedsUpdate', (updatedSeeds) => {
-  lockedSeeds = updatedSeeds;
-  highlightLockedSeeds(); // 🔴 live update
+  highlightLockedSeeds(); // ← we'll define this below
 });
 
   // ✅ Called number from server
@@ -159,8 +282,7 @@ socket.on('gameStarted', () => {
   if (gameMessage) {
     gameMessage.textContent = '🎯 Game has started!';
   }
-lockedSeeds = []; // 🔄 clear locally
-highlightLockedSeeds();
+
   const bar = document.getElementById('countdown-bar');
   if (bar) {
     bar.style.width = '0%';
@@ -182,11 +304,6 @@ socket.on('blocked', (reason) => {
   location.reload();
 });
 
-  socket.on('lockedSeedsUpdate', (updatedSeeds) => {
-  lockedSeeds = updatedSeeds;
-  highlightLockedSeeds(); // ✅ update red highlights
-});
-  
 // ✅ Play again resets
 socket.on('reset', () => {
   location.reload();
@@ -227,57 +344,59 @@ socket.on('reset', () => {
       card[2][2] = 'FREE';
       renderCard(card);
     }
+function renderCard(card) {
+  const container = document.createElement('div');
+  container.className = 'bingo-card';
 
-    function renderCard(card) {
-      const container = document.createElement('div');
-      container.className = 'bingo-card';
-      const table = document.createElement('table');
-      const header = document.createElement('tr');
-      ['B','I','N','G','O'].forEach(letter => {
-        const th = document.createElement('td');
-        th.textContent = letter;
-        th.style.fontWeight = 'bold';
-        th.style.fontSize = '12px';
-        th.classList.add(letter.toLowerCase() + '-col');
-        header.appendChild(th);
-      });
-      table.appendChild(header);
+  const table = document.createElement('table');
 
-      for (let row = 0; row < 5; row++) {
-        const tr = document.createElement('tr');
-        for (let col = 0; col < 5; col++) {
-          const td = document.createElement('td');
-          const val = card[col][row];
-          td.textContent = val;
-          if (val === 'FREE') {
-  td.classList.add('free', 'marked');
-} else {
-  td.addEventListener('click', () => markCell(td, val));
+  // BINGO Ball Header
+  const header = document.createElement('tr');
+  ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
+    const th = document.createElement('td');
+    th.innerHTML = `<div class="bingo-ball ${letter}">${letter}</div>`;
+    header.appendChild(th);
+  });
+  table.appendChild(header);
 
-  if (calledNumbers.has(parseInt(val))) {
-    td.classList.add('marked');
-  }
-}
-          tr.appendChild(td);
+  // Card Numbers
+  for (let row = 0; row < 5; row++) {
+    const tr = document.createElement('tr');
+    for (let col = 0; col < 5; col++) {
+      const td = document.createElement('td');
+      const val = card[col][row];
+      td.textContent = val;
+      if (val === 'FREE') {
+        td.classList.add('free', 'marked');
+      } else {
+        td.addEventListener('click', () => markCell(td, val));
+        if (calledNumbers.has(parseInt(val))) {
+          td.classList.add('marked');
         }
-        table.appendChild(tr);
       }
-
-      container.appendChild(table);
-      const buttons = document.createElement('div');
-      buttons.className = 'buttons';
-      const backButton = document.createElement('button');
-      backButton.textContent = 'Back';
-      backButton.onclick = () => { bingoContainer.innerHTML = ''; };
-      const playButton = document.createElement('button');
-      playButton.textContent = 'Play';
-      playButton.onclick = () => startGame(card);
-      buttons.appendChild(backButton);
-      buttons.appendChild(playButton);
-      bingoContainer.innerHTML = '';
-      bingoContainer.appendChild(container);
-      bingoContainer.appendChild(buttons);
+      tr.appendChild(td);
     }
+    table.appendChild(tr);
+  }
+
+  container.appendChild(table);
+
+  // Buttons (Back & Play)
+  const buttons = document.createElement('div');
+  buttons.className = 'buttons';
+  const backButton = document.createElement('button');
+  backButton.textContent = 'Back';
+  backButton.onclick = () => { bingoContainer.innerHTML = ''; };
+  const playButton = document.createElement('button');
+  playButton.textContent = 'Play';
+  playButton.onclick = () => startGame(card);
+  buttons.appendChild(backButton);
+  buttons.appendChild(playButton);
+
+  bingoContainer.innerHTML = '';
+  bingoContainer.appendChild(container);
+  bingoContainer.appendChild(buttons);
+}
 
     function startGame(card) {
   if (playerBalance < 0) {
@@ -285,31 +404,41 @@ socket.on('reset', () => {
     return;
   }
 
+  // Switch pages
   page1.classList.add('hidden');
   page2.classList.remove('hidden');
+
+  // Reset state
   gameCard = card;
   calledNumbers.clear();
   callHistory = [];
   ballScroll.innerHTML = '';
   calledCount.textContent = 'Numbers Called: 0';
   allCallPool = Array.from({ length: 75 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-  renderGameCard();
-  gameMessage.textContent = '';
-  renderMiniTable();
   callsNeededToWin = 15 + Math.floor(Math.random() * 11);
 
+  // Update visuals
+  renderGameCard();
+  renderMiniTable();
+  gameMessage.textContent = '';
+  cardNumberDisplay.textContent = `Card Number: ${currentSeed}`;
+
+  // Deduct play cost
   playerBalance -= 10;
   updateBalanceDisplay();
 
-  cardNumberDisplay.textContent = `Card Number: ${currentSeed}`;
+  // Emit player info to server
   socket.emit('register', {
     username: telegramUsername,
     seed: currentSeed
   });
 
-  document.getElementById('username-display').textContent = `👤 Username: @${telegramUsername}`;
-}
-
+  // Display player info at the top of page2
+  document.getElementById('called-count').textContent = `🔢 Called: ${calledNumbers.size}`;
+document.getElementById('balance-display').textContent = `💰 Balance: ${playerBalance}`;
+document.getElementById('player-count').textContent = `👥 Players: ${Object.keys(players).length}`;
+document.getElementById('gain-point').textContent = `🏆 Gain: +25`; 
+    }// or dynamic
       function updateBalanceDisplay() {
   const balanceEl = document.getElementById('balance-display');
   if (balanceEl) {
@@ -346,29 +475,31 @@ socket.on('reset', () => {
       if (number <= 75) return 'O';
       return '';
     }
+function renderMiniTable() {
+  miniTable.innerHTML = '';
+  
+  // Header row with BINGO balls
+  const headerRow = document.createElement('tr');
+  ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
+    const th = document.createElement('th');
+    th.innerHTML = `<div class="bingo-ball ${letter}">${letter}</div>`;
+    headerRow.appendChild(th);
+  });
+  miniTable.appendChild(headerRow);
 
-    function renderMiniTable() {
-      miniTable.innerHTML = '';
-      const headerRow = document.createElement('tr');
-      ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
-        const th = document.createElement('th');
-        th.textContent = letter;
-        th.className = letter.toLowerCase() + '-col';
-        headerRow.appendChild(th);
-      });
-      miniTable.appendChild(headerRow);
-      for (let i = 0; i < 15; i++) {
-        const tr = document.createElement('tr');
-        for (let j = 0; j < 5; j++) {
-          const number = i + j * 15 + 1;
-          const td = document.createElement('td');
-          td.textContent = number;
-          td.id = `mini-${number}`;
-          tr.appendChild(td);
-        }
-        miniTable.appendChild(tr);
-      }
+  // Number cells
+  for (let i = 0; i < 15; i++) {
+    const tr = document.createElement('tr');
+    for (let j = 0; j < 5; j++) {
+      const number = i + j * 15 + 1;
+      const td = document.createElement('td');
+      td.textContent = number;
+      td.id = `mini-${number}`;
+      tr.appendChild(td);
     }
+    miniTable.appendChild(tr);
+  }
+}
 
       function highlightLockedSeeds() {
   const buttons = document.querySelectorAll('#number-grid button');
@@ -385,20 +516,21 @@ socket.on('reset', () => {
     }
   });
 }
-      
-    function renderGameCard() {
+function renderGameCard() {
   gameCardContainer.innerHTML = '';
+
   const table = document.createElement('table');
+
+  // BINGO Ball Header
   const header = document.createElement('tr');
   ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
     const th = document.createElement('td');
-    th.textContent = letter;
-    th.style.fontWeight = 'bold';
-    th.classList.add(letter.toLowerCase() + '-col');
+    th.innerHTML = `<div class="bingo-ball ${letter}">${letter}</div>`;
     header.appendChild(th);
   });
   table.appendChild(header);
 
+  // Card Numbers
   for (let row = 0; row < 5; row++) {
     const tr = document.createElement('tr');
     for (let col = 0; col < 5; col++) {
@@ -474,6 +606,18 @@ function markCell(td, val) {
       bingoContainer.innerHTML = '';
     }
 
+      function updatePlayerCount(count) {
+  const el = document.getElementById('player-count');
+  if (el) el.textContent = `👥 Players: ${count}`;
+}
+
+function updateGainPoint(value) {
+  const el = document.getElementById('gain-point');
+  if (el) el.textContent = `🏆 Gain: +${value}`;
+}
+     updatePlayerCount(Object.keys(players).length); // Example
+updateGainPoint(25); // Or based on win 
+      
     function mulberry32(a) {
       return function () {
         let t = a += 0x6D2B79F5;
