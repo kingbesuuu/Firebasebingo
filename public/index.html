@@ -34,7 +34,9 @@
 .mini-table td:hover {
   background-color: #e0e0e0;
 }
-
+.try-again-container button:hover {
+  background: #218838;
+}
 /* FREE cell style */
 .bingo-card .free {
   background-color: #ccc;
@@ -179,6 +181,10 @@
   
       <div class="ball-container" id="ball-scroll"></div>
 
+  <div class="try-again-container hidden" id="try-again-container" style="text-align: center; margin-top: 20px;">
+  <button onclick="tryAgain()" style="padding: 8px 14px; font-size: 14px; background: #28a745; color: white; border: none; border-radius: 4px;">🔁 Try Again</button>
+</div>
+  
   <!-- ✅ Mini Table and Bingo Card Side-by-side -->
   <div class="layout-flex">
     <div class="mini-table-container">
@@ -294,10 +300,18 @@ socket.on('gameStarted', () => {
 
 // ✅ Winner shown
 socket.on('winner', (data) => {
-  clearInterval(callInterval); // ✅ Stop the client loop
-  gameMessage.innerHTML = `🎉 <b>${data.username}</b> got Bingo!<br/><pre>${JSON.stringify(data.card, null, 2)}</pre>`;
-});
+  clearInterval(callInterval);
 
+  const gameMessage = document.getElementById('game-message');
+  if (gameMessage) {
+    gameMessage.innerHTML = `🎉 <b>${data.username}</b> got Bingo!<br/><pre>${JSON.stringify(data.card, null, 2)}</pre>`;
+  }
+
+  const tryAgainBox = document.getElementById('try-again-container');
+  if (tryAgainBox) {
+    tryAgainBox.classList.remove('hidden');
+  }
+});
 // ✅ Blocked from joining
 socket.on('blocked', (reason) => {
   alert('❌ Blocked: ' + reason);
@@ -306,7 +320,7 @@ socket.on('blocked', (reason) => {
 
 // ✅ Play again resets
 socket.on('reset', () => {
-  location.reload();
+  location.reload(); // Refreshes and brings player to new game
 });
     
     const grid = document.getElementById('number-grid');
@@ -444,6 +458,9 @@ document.getElementById('gain-point').textContent = `🏆 Gain: +25`;
   if (balanceEl) {
     balanceEl.textContent = `💰 Balance: ${playerBalance}`;
   }
+}
+      function tryAgain() {
+  socket.emit('playAgain');
 }
       
     function callNumber() {

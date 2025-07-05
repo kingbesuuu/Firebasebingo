@@ -105,7 +105,7 @@ function resetGame() {
   calledNumbers = new Set();
   callPool = [];
   gameStarted = false;
-  winnerInfo = null;
+  winnerInfo = null; // ✅ reset
   io.emit('reset');
 }
 
@@ -223,13 +223,10 @@ io.on('connection', (socket) => {
     card
   };
 
-  io.emit('winner', winnerInfo);
-
-  // ✅ STOP calling numbers immediately
-  clearInterval(callInterval);
+  io.emit('winner', winnerInfo); // Broadcast winner to everyone
+  clearInterval(callInterval);   // Stop calling numbers
   callInterval = null;
 });
-
   socket.on('playAgain', () => {
     resetGame();
   });
