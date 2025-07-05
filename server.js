@@ -73,12 +73,21 @@ function startCountdownIfNeeded() {
 }
 
 function startGame() {
-  if (gameStarted) return;
+  if (gameStarted || Object.keys(players).length === 0) return;
+
   gameStarted = true;
   calledNumbers.clear();
   callPool = Array.from({ length: 75 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
   io.emit('gameStarted');
+  io.emit('lockedSeedsUpdate', []); // ❌ Clear red highlights on frontend
+
   callInterval = setInterval(() => {
+    if (Object.keys(players).length === 0) {
+      console.log("🛑 No players left. Stopping game.");
+      resetGame();
+      return;
+    }
+
     if (callPool.length === 0) return;
     const number = callPool.shift();
     calledNumbers.add(number);

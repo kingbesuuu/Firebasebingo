@@ -124,14 +124,20 @@ socket.on('countdown', (seconds) => {
   }
 });
   
-    socket.on('init', (data) => {
+socket.on('init', (data) => {
   calledNumbers = new Set(data.calledNumbers || []);
   playerBalance = data.balance || 0;
   lockedSeeds = data.lockedSeeds || [];
   updateBalanceDisplay();
   renderMiniTable();
   renderGameCard();
-  highlightLockedSeeds(); // ← we'll define this below
+  highlightLockedSeeds(); // ← show red buttons for taken cards
+});
+
+// 👇 Add this directly below
+socket.on('lockedSeedsUpdate', (updatedSeeds) => {
+  lockedSeeds = updatedSeeds;
+  highlightLockedSeeds(); // 🔴 live update
 });
 
   // ✅ Called number from server
@@ -153,7 +159,8 @@ socket.on('gameStarted', () => {
   if (gameMessage) {
     gameMessage.textContent = '🎯 Game has started!';
   }
-
+lockedSeeds = []; // 🔄 clear locally
+highlightLockedSeeds();
   const bar = document.getElementById('countdown-bar');
   if (bar) {
     bar.style.width = '0%';
@@ -175,6 +182,11 @@ socket.on('blocked', (reason) => {
   location.reload();
 });
 
+  socket.on('lockedSeedsUpdate', (updatedSeeds) => {
+  lockedSeeds = updatedSeeds;
+  highlightLockedSeeds(); // ✅ update red highlights
+});
+  
 // ✅ Play again resets
 socket.on('reset', () => {
   location.reload();
