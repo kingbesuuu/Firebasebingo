@@ -76,11 +76,13 @@ function startGame() {
   if (gameStarted || Object.keys(players).length === 0) return;
 
   gameStarted = true;
+  winnerInfo = null; // Clear previous winner
+
   calledNumbers.clear();
   callPool = Array.from({ length: 75 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
 
   io.emit('gameStarted', {
-    playerCount: Object.keys(players).length, // ✅ Send player count
+    playerCount: Object.keys(players).length
   });
 
   io.emit('lockedSeedsUpdate', []);
@@ -114,8 +116,9 @@ function resetGame() {
   calledNumbers = new Set();
   callPool = [];
   gameStarted = false;
-  winnerInfo = null; // ✅ reset
-  io.emit('reset');
+  winnerInfo = null;  // ✅ Reset winner info
+
+  io.emit('reset'); // ✅ Tell clients to reload/reset
 }
 
 function updatePlayerBalanceByUsername(username, newBalance) {
@@ -228,18 +231,18 @@ io.on('connection', (socket) => {
   if (!gameStarted || winnerInfo) return;
 
   winnerInfo = {
-  username: players[socket.id]?.username || 'Unknown',
-  card
-};
+    username: players[socket.id]?.username || 'Unknown',
+    card
+  };
 
   io.emit('winner', winnerInfo);
-  clearInterval(callInterval); // ✅ Stop server-side number calls
-  callInterval = null;
-});
-  socket.on('playAgain', () => {
-    resetGame();
-  });
+  io.emit('stopCalling'); // ✅ NEW LINE
 
+  if (callInterval) {
+    clearInterval(callInterval);
+    callInterval = null;
+  }
+});
   socket.on('disconnect', () => {
     const player = players[socket.id];
     if (player) {

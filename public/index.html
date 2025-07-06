@@ -364,6 +364,15 @@ socket.on('winner', (data) => {
     gameMessage.textContent = '';
   }, 15000);
 });
+  
+  socket.on('stopCalling', () => {
+  if (callInterval) {
+    clearInterval(callInterval);
+    callInterval = null;
+    console.log('⛔ Stopped client number calling after winner.');
+  }
+});
+  
 // ✅ Blocked from joining
 socket.on('blocked', (reason) => {
   alert('❌ Blocked: ' + reason);
@@ -516,7 +525,7 @@ document.getElementById('gain-point').textContent = `🏆 Gain: +25`;
 }
       
     function callNumber() {
-  if (winnerInfo || allCallPool.length === 0) return;
+  if (!callInterval || winnerInfo || allCallPool.length === 0) return;
   const number = allCallPool.shift();
   socket.emit('callNumber', number);
 }
