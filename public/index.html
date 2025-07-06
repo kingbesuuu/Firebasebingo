@@ -291,7 +291,7 @@ socket.on('numberCalled', (number) => {
 
 
 
-socket.on('gameStarted', () => {
+socket.on('gameStarted', (data) => {
   const gameMessage = document.getElementById('game-message');
   if (gameMessage) {
     gameMessage.textContent = '🎯 Game has started!';
@@ -302,13 +302,20 @@ socket.on('gameStarted', () => {
     bar.style.width = '0%';
   }
 
-  // ✅ Start calling numbers every 3.7s after game officially starts
+  if (data?.playerCount) {
+    const playerCountEl = document.getElementById('player-count');
+    if (playerCountEl) {
+      playerCountEl.textContent = `👥 Players: ${data.playerCount}`;
+    }
+  }
+
   callInterval = setInterval(callNumber, 5000);
 });
-
+  // ✅ Start calling numbers every 3.7s after game 
 // ✅ Winner shown
+// ✅ Winner announced
 socket.on('winner', (data) => {
-  clearInterval(callInterval); // Stop number calling
+  clearInterval(callInterval); // 🛑 Stop number calling
 
   const container = document.createElement('div');
   container.id = 'winner-card-display';
@@ -319,7 +326,7 @@ socket.on('winner', (data) => {
   const table = document.createElement('table');
   table.className = 'bingo-card';
 
-  // BINGO header row (as balls)
+  // 🔵 BINGO balls as header
   const header = document.createElement('tr');
   ['B', 'I', 'N', 'G', 'O'].forEach(letter => {
     const th = document.createElement('td');
@@ -328,7 +335,7 @@ socket.on('winner', (data) => {
   });
   table.appendChild(header);
 
-  // Fill the card rows
+  // 🟩 Fill winner's card
   for (let row = 0; row < 5; row++) {
     const tr = document.createElement('tr');
     for (let col = 0; col < 5; col++) {
@@ -349,7 +356,7 @@ socket.on('winner', (data) => {
   gameMessage.innerHTML = '';
   gameMessage.appendChild(container);
 
-  // Return home after 15s
+  // ⏳ Back to home after delay
   setTimeout(() => {
     page2.classList.add('hidden');
     page1.classList.remove('hidden');
@@ -509,10 +516,10 @@ document.getElementById('gain-point').textContent = `🏆 Gain: +25`;
 }
       
     function callNumber() {
-      if (allCallPool.length === 0) return;
-      const number = allCallPool.shift();
-      socket.emit('callNumber', number);
-    }
+  if (winnerInfo || allCallPool.length === 0) return;
+  const number = allCallPool.shift();
+  socket.emit('callNumber', number);
+}
 
     function updateBall(number) {
       const letter = getLetterForNumber(number);

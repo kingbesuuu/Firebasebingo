@@ -78,23 +78,32 @@ function startGame() {
   gameStarted = true;
   calledNumbers.clear();
   callPool = Array.from({ length: 75 }, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-  io.emit('gameStarted');
-  io.emit('lockedSeedsUpdate', []); // ❌ Clear red highlights on frontend
+
+  io.emit('gameStarted', {
+    playerCount: Object.keys(players).length, // ✅ Send player count
+  });
+
+  io.emit('lockedSeedsUpdate', []);
 
   callInterval = setInterval(() => {
+    if (winnerInfo) {
+      clearInterval(callInterval);
+      callInterval = null;
+      return;
+    }
+
     if (Object.keys(players).length === 0) {
-      console.log("🛑 No players left. Stopping game.");
       resetGame();
       return;
     }
 
     if (callPool.length === 0) return;
+
     const number = callPool.shift();
     calledNumbers.add(number);
     io.emit('numberCalled', number);
   }, 5000);
 }
-
 function resetGame() {
   clearInterval(callInterval);
   clearInterval(countdownTimer);
@@ -219,12 +228,12 @@ io.on('connection', (socket) => {
   if (!gameStarted || winnerInfo) return;
 
   winnerInfo = {
-    username: players[socket.id]?.username || 'Unknown',
-    card
-  };
+  username: players[socket.id]?.username || 'Unknown',
+  card
+};
 
-  io.emit('winner', winnerInfo); // Broadcast winner to everyone
-  clearInterval(callInterval);   // Stop calling numbers
+  io.emit('winner', winnerInfo);
+  clearInterval(callInterval); // ✅ Stop server-side number calls
   callInterval = null;
 });
   socket.on('playAgain', () => {
