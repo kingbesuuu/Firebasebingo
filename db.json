@@ -1,10 +1,6 @@
 {
-  "players": {
-    "kingbesuuu": {
-      "username": "kingbesuuu",
-      "score": 0,
-      "balance": 300,
-      "seed": 42
-    }
+  "users": {
+    "kingbesuuu": { "balance": 120 },
+    "anotheruser": { "balance": 0 }
   }
 }
