@@ -1,9 +1,12 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const { Low, JSONFile } = require('lowdb');
-const path = require('path');
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Low, JSONFile } from 'lowdb/node';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(cors());
@@ -13,16 +16,12 @@ const io = new Server(server);
 const PORT = 3000;
 
 // --- LOWDB SETUP ---
-const dbFile = path.join(__dirname, 'db.json');
+const dbFile = join(__dirname, 'db.json');
 const adapter = new JSONFile(dbFile);
 const db = new Low(adapter);
-
-async function initDb() {
-  await db.read();
-  db.data ||= { users: {} };
-  await db.write();
-}
-initDb();
+await db.read();
+db.data ||= { users: {} };
+await db.write();
 
 // --- ADMIN PANEL SETTINGS ---
 const ADMIN_SECRET = "changeme"; // Must match admin panel
