@@ -15,6 +15,9 @@ const io = new Server(server);
 
 const PORT = 3000;
 
+// Serve static files from the "public" directory
+app.use(express.static(join(__dirname, 'public')));
+
 // --- LOWDB SETUP ---
 const dbFile = join(__dirname, 'db.json');
 const adapter = new JSONFile(dbFile);
@@ -98,9 +101,6 @@ function checkBingo(card, markedSet) {
   return diag1 || diag2;
 }
 
-// --- Serve static files (index.html etc.) ---
-app.use(express.static(__dirname));
-
 // --- ADMIN API MIDDLEWARE ---
 function requireAdmin(req, res, next) {
   const auth = req.headers.authorization || "";
@@ -154,7 +154,6 @@ app.post('/admin/update-balance', express.json(), requireAdmin, async (req, res)
 
 // --- SOCKET.IO LOGIC ---
 io.on('connection', (socket) => {
-  // When a player registers, use their Telegram username as the key
   socket.on('register', async ({ username, seed }) => {
     playerUsernames[socket.id] = username;
     players[socket.id] = { username, seed };
